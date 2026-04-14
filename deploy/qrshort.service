@@ -1,0 +1,15 @@
+[Unit]
+Description=QR Short URL FastAPI app
+After=network.target postgresql.service
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/qrshort
+EnvironmentFile=/etc/qrshort.env
+ExecStart=/opt/qrshort/.venv/bin/gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 127.0.0.1:8002
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

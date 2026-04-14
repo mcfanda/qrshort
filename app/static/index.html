@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Short URL</title>
+    <style>
+      :root {
+        color: #202124;
+        background: #f7f8f3;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(180deg, #f7f8f3 0%, #ffffff 45%, #edf7f0 100%);
+        color: #202124;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 34px;
+        width: min(1240px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        border: 1px solid #ccd8d0;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 16px;
+      }
+
+      .brand {
+        margin: 0 0 20px;
+        color: #202124;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .nav {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        border-radius: 8px;
+        color: #202124;
+        font-weight: 800;
+        padding: 9px 10px;
+        text-decoration: none;
+      }
+
+      .nav-link.active,
+      .nav-link:hover {
+        background: #edf7f0;
+        color: #157347;
+      }
+
+      .nav-icon {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border: 1px solid #b6c8bd;
+        border-radius: 8px;
+        background: #f7f8f3;
+        color: #157347;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .masthead {
+        min-height: 180px;
+        padding-top: 16px;
+      }
+
+      h1 {
+        max-width: 720px;
+        margin: 0 0 16px;
+        font-size: 44px;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      p {
+        max-width: 680px;
+        margin: 0;
+        color: #4b4f4d;
+        font-size: 18px;
+        line-height: 1.55;
+        letter-spacing: 0;
+      }
+
+      .tool {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+        gap: 24px;
+        align-items: start;
+        margin-top: 32px;
+      }
+
+      form,
+      .result {
+        border: 1px solid #ccd8d0;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 24px;
+      }
+
+      label {
+        display: block;
+        margin: 0 0 8px;
+        font-weight: 700;
+      }
+
+      input {
+        width: 100%;
+        min-height: 48px;
+        margin: 0 0 18px;
+        border: 1px solid #aeb9b2;
+        border-radius: 8px;
+        padding: 10px 12px;
+        color: #202124;
+        font: inherit;
+        letter-spacing: 0;
+      }
+
+      input:focus {
+        border-color: #157347;
+        outline: 3px solid #d6f2df;
+      }
+
+      button {
+        min-height: 48px;
+        border: 0;
+        border-radius: 8px;
+        background: #157347;
+        color: #ffffff;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 800;
+        padding: 12px 18px;
+        letter-spacing: 0;
+      }
+
+      button:disabled {
+        background: #87938b;
+        cursor: wait;
+      }
+
+      .session {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .session a {
+        color: #157347;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .session button {
+        min-height: 40px;
+        background: #202124;
+        padding: 8px 14px;
+      }
+
+      .result {
+        min-height: 260px;
+      }
+
+      .result a {
+        color: #b3261e;
+        overflow-wrap: anywhere;
+        font-weight: 800;
+      }
+
+      .result img {
+        display: block;
+        width: min(100%, 260px);
+        height: auto;
+        margin-top: 18px;
+        border: 1px solid #ccd8d0;
+        border-radius: 8px;
+      }
+
+      .muted {
+        color: #5f6762;
+        font-size: 15px;
+      }
+
+      .status {
+        min-height: 24px;
+        margin-top: 16px;
+        color: #b3261e;
+        font-weight: 700;
+      }
+
+      @media (max-width: 760px) {
+        .shell {
+          grid-template-columns: 1fr;
+          width: min(100% - 24px, 1120px);
+          padding: 28px 0;
+        }
+
+        .sidebar {
+          position: static;
+        }
+
+        .masthead {
+          min-height: 0;
+        }
+
+        .tool {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 34px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="App navigation">
+        <p class="brand">QR Short URL</p>
+        <nav class="nav">
+          <a class="nav-link active" href="/">
+            <span class="nav-icon" aria-hidden="true">+</span>
+            <span>Create new</span>
+          </a>
+          <a class="nav-link" href="/links">
+            <span class="nav-icon" aria-hidden="true">QR</span>
+            <span>Saved QR codes</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main>
+        <div class="session">
+          <button id="logout" type="button">Log out</button>
+        </div>
+
+        <section class="masthead" aria-labelledby="title">
+          <h1 id="title">Short links with QR codes.</h1>
+          <p>Paste a destination URL, choose an optional short code, and get a QR image ready for sharing.</p>
+        </section>
+
+        <section class="tool" aria-label="Create a short link">
+          <form id="link-form">
+            <label for="nickname">URL nickname</label>
+            <input id="nickname" name="nickname" type="text" maxlength="160" placeholder="Menu, slides, client invoice" required>
+
+            <label for="url">Destination URL</label>
+            <input id="url" name="url" type="url" placeholder="https://example.com/page" required>
+
+            <label for="custom_slug">Custom short code</label>
+            <input id="custom_slug" name="custom_slug" type="text" pattern="[A-Za-z0-9_-]{3,64}" placeholder="optional">
+
+            <button id="submit" type="submit">Create link</button>
+            <div id="status" class="status" aria-live="polite"></div>
+          </form>
+
+          <aside class="result" aria-live="polite">
+            <p class="muted">Your short link will appear here.</p>
+            <p id="short-link"></p>
+            <img id="qr-image" alt="QR code for the short link" hidden>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const form = document.querySelector("#link-form");
+      const submit = document.querySelector("#submit");
+      const status = document.querySelector("#status");
+      const shortLink = document.querySelector("#short-link");
+      const qrImage = document.querySelector("#qr-image");
+      const logout = document.querySelector("#logout");
+
+      logout.addEventListener("click", async () => {
+        await fetch("/logout", {method: "POST"});
+        window.location.href = "/login";
+      });
+
+      async function saveLink(payload) {
+        const response = await fetch("/api/links", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        return {response, data};
+      }
+
+      function renderResult(data) {
+        const anchor = document.createElement("a");
+        anchor.href = data.short_url;
+        anchor.textContent = data.short_url;
+        shortLink.replaceChildren(anchor);
+        qrImage.src = data.qr_url;
+        qrImage.hidden = false;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        submit.disabled = true;
+        status.textContent = "";
+        shortLink.textContent = "";
+        qrImage.hidden = true;
+
+        const formData = new FormData(form);
+        const payload = {
+          nickname: formData.get("nickname"),
+          url: formData.get("url"),
+          custom_slug: formData.get("custom_slug") || null
+        };
+
+        try {
+          let {response, data} = await saveLink(payload);
+          if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+          }
+          if (response.status === 409 && data.detail === "duplicate_link") {
+            const shouldReplace = confirm(`${data.message}\n\nReplace it?`);
+            if (!shouldReplace) {
+              status.textContent = "Canceled.";
+              return;
+            }
+            payload.replace_existing = true;
+            ({response, data} = await saveLink(payload));
+            if (response.status === 401) {
+              window.location.href = "/login";
+              return;
+            }
+          }
+          if (!response.ok) {
+            throw new Error(data.detail || "Could not create the link.");
+          }
+
+          renderResult(data);
+        } catch (error) {
+          status.textContent = error.message;
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

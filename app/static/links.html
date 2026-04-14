@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Saved QR Codes</title>
+    <style>
+      :root {
+        color: #202124;
+        background: #f7f8f3;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(180deg, #f7f8f3 0%, #ffffff 45%, #edf7f0 100%);
+        color: #202124;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 34px;
+        width: min(1240px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 24px;
+        align-self: start;
+        border: 1px solid #ccd8d0;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 16px;
+      }
+
+      .brand {
+        margin: 0 0 20px;
+        color: #202124;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: 0;
+      }
+
+      .nav {
+        display: grid;
+        gap: 10px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        border-radius: 8px;
+        color: #202124;
+        font-weight: 800;
+        padding: 9px 10px;
+        text-decoration: none;
+      }
+
+      .nav-link.active,
+      .nav-link:hover {
+        background: #edf7f0;
+        color: #157347;
+      }
+
+      .nav-icon {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border: 1px solid #b6c8bd;
+        border-radius: 8px;
+        background: #f7f8f3;
+        color: #157347;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .topbar {
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 40px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      a {
+        color: #157347;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+
+      button {
+        min-height: 40px;
+        border: 0;
+        border-radius: 8px;
+        background: #157347;
+        color: #ffffff;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 800;
+        padding: 8px 14px;
+        letter-spacing: 0;
+      }
+
+      button.danger {
+        background: #b3261e;
+      }
+
+      .items {
+        display: grid;
+        gap: 18px;
+      }
+
+      .item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 150px;
+        gap: 22px;
+        align-items: start;
+        border: 1px solid #ccd8d0;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 20px;
+      }
+
+      .item h2 {
+        margin: 0 0 10px;
+        font-size: 24px;
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+
+      .item p {
+        margin: 0 0 10px;
+        color: #4b4f4d;
+        line-height: 1.45;
+        letter-spacing: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .item img {
+        width: 150px;
+        height: 150px;
+        border: 1px solid #ccd8d0;
+        border-radius: 8px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .empty {
+        border: 1px solid #ccd8d0;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 24px;
+        color: #4b4f4d;
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          grid-template-columns: 1fr;
+          width: min(100% - 24px, 1120px);
+          padding: 28px 0;
+        }
+
+        .sidebar {
+          position: static;
+        }
+
+        .topbar,
+        .item {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar" aria-label="App navigation">
+        <p class="brand">QR Short URL</p>
+        <nav class="nav">
+          <a class="nav-link" href="/">
+            <span class="nav-icon" aria-hidden="true">+</span>
+            <span>Create new</span>
+          </a>
+          <a class="nav-link active" href="/links">
+            <span class="nav-icon" aria-hidden="true">QR</span>
+            <span>Saved QR codes</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main>
+        <div class="topbar">
+          <h1>Saved QR codes.</h1>
+        </div>
+
+        <section id="items" class="items" aria-live="polite">
+          <div class="empty">Loading saved QR codes.</div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const items = document.querySelector("#items");
+
+      async function loadLinks() {
+        const response = await fetch("/api/links");
+        if (response.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+        const links = await response.json();
+        if (!response.ok) {
+          items.innerHTML = "<div class=\"empty\">Could not load saved QR codes.</div>";
+          return;
+        }
+        if (!links.length) {
+          items.innerHTML = "<div class=\"empty\">No saved QR codes yet.</div>";
+          return;
+        }
+
+        items.replaceChildren(...links.map((link) => {
+          const article = document.createElement("article");
+          article.className = "item";
+
+          const detail = document.createElement("div");
+          const title = document.createElement("h2");
+          title.textContent = link.nickname;
+
+          const shortUrl = document.createElement("p");
+          const shortAnchor = document.createElement("a");
+          shortAnchor.href = link.short_url;
+          shortAnchor.textContent = link.short_url;
+          shortUrl.append("Short URL: ", shortAnchor);
+
+          const target = document.createElement("p");
+          const targetAnchor = document.createElement("a");
+          targetAnchor.href = link.target_url;
+          targetAnchor.textContent = link.target_url;
+          target.append("Target URL: ", targetAnchor);
+
+          const meta = document.createElement("p");
+          meta.textContent = `Clicks: ${link.clicks}`;
+
+          const actions = document.createElement("div");
+          actions.className = "actions";
+
+          const copy = document.createElement("button");
+          copy.type = "button";
+          copy.textContent = "Copy short URL";
+          copy.addEventListener("click", async () => {
+            await navigator.clipboard.writeText(link.short_url);
+            copy.textContent = "Copied";
+            setTimeout(() => copy.textContent = "Copy short URL", 1200);
+          });
+
+          const download = document.createElement("a");
+          download.href = link.qr_url;
+          download.download = `${link.slug}.png`;
+          download.textContent = "Download QR";
+
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "danger";
+          remove.textContent = "Delete";
+          remove.addEventListener("click", async () => {
+            if (!confirm(`Delete "${link.nickname}"?`)) {
+              return;
+            }
+            remove.disabled = true;
+            const response = await fetch(`/api/links/${encodeURIComponent(link.slug)}`, {method: "DELETE"});
+            if (response.status === 401) {
+              window.location.href = "/login";
+              return;
+            }
+            if (!response.ok) {
+              remove.disabled = false;
+              remove.textContent = "Could not delete";
+              setTimeout(() => remove.textContent = "Delete", 1400);
+              return;
+            }
+            article.remove();
+            if (!items.children.length) {
+              items.innerHTML = "<div class=\"empty\">No saved QR codes yet.</div>";
+            }
+          });
+
+          actions.append(copy, download, remove);
+          detail.append(title, shortUrl, target, meta, actions);
+
+          const qr = document.createElement("img");
+          qr.src = link.qr_url;
+          qr.alt = `QR code for ${link.nickname}`;
+
+          article.append(detail, qr);
+          return article;
+        }));
+      }
+
+      loadLinks();
+    </script>
+  </body>
+</html>
