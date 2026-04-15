@@ -335,7 +335,7 @@ def list_links(request: Request) -> list[dict[str, Any]]:
             SELECT slug, nickname, target_url, clicks, created_at, last_clicked_at
             FROM short_links
             ORDER BY created_at DESC
-            LIMIT 500
+            LIMIT 100
             """
         ).fetchall()
     return [link_payload(row) for row in rows]
