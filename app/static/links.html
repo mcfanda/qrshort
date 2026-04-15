@@ -163,6 +163,12 @@
         height: 150px;
         border: 1px solid #ccd8d0;
         border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .item img:focus-visible {
+        outline: 3px solid #157347;
+        outline-offset: 2px;
       }
 
       .actions {
@@ -233,6 +239,24 @@
     <script>
       const items = document.querySelector("#items");
 
+      async function copyImageToClipboard(imageUrl) {
+        if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
+          throw new Error("Image clipboard is not supported in this browser.");
+        }
+
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          throw new Error("Could not fetch image.");
+        }
+
+        const blob = await response.blob();
+        if (!blob.type.startsWith("image/")) {
+          throw new Error("Clipboard copy requires an image file.");
+        }
+
+        await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
+      }
+
       async function loadLinks() {
         const response = await fetch("/api/links");
         if (response.status === 401) {
@@ -250,6 +274,8 @@
         }
 
         items.replaceChildren(...links.map((link) => {
+          const qrPath = `/qr/${encodeURIComponent(link.slug)}.png`;
+
           const article = document.createElement("article");
           article.className = "item";
 
@@ -285,7 +311,7 @@
           });
 
           const download = document.createElement("a");
-          download.href = link.qr_url;
+          download.href = qrPath;
           download.download = `${link.slug}.png`;
           download.textContent = "Download QR";
 
@@ -319,8 +345,34 @@
           detail.append(title, shortUrl, target, meta, actions);
 
           const qr = document.createElement("img");
-          qr.src = link.qr_url;
+          qr.src = qrPath;
           qr.alt = `QR code for ${link.nickname}`;
+          qr.title = "Click to copy QR image";
+          qr.tabIndex = 0;
+          qr.setAttribute("role", "button");
+
+          const resetQrTitle = () => {
+            qr.title = "Click to copy QR image";
+          };
+
+          const handleQrCopy = async () => {
+            try {
+              await copyImageToClipboard(qrPath);
+              qr.title = "QR image copied";
+            } catch (error) {
+              qr.title = "Could not copy QR image";
+            } finally {
+              setTimeout(resetQrTitle, 1200);
+            }
+          };
+
+          qr.addEventListener("click", handleQrCopy);
+          qr.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleQrCopy();
+            }
+          });
 
           article.append(detail, qr);
           return article;
