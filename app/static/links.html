@@ -240,7 +240,7 @@
       const items = document.querySelector("#items");
 
       async function copyImageToClipboard(imageUrl) {
-        if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
+        if (!window.ClipboardItem || !navigator.clipboard?.write) {
           throw new Error("Image clipboard is not supported in this browser.");
         }
 
@@ -357,7 +357,7 @@
 
           const handleQrCopy = async () => {
             try {
-              await copyImageToClipboard(qrPath);
+              await copyImageToClipboard(link.qr_url);
               qr.title = "QR image copied";
             } catch (error) {
               qr.title = "Could not copy QR image";
